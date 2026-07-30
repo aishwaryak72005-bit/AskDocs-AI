@@ -159,20 +159,19 @@ def get_embeddings(texts: list) -> np.ndarray:
         return np.array(embeddings, dtype=np.float32)
 
     except Exception as e:
-        print(f"⚠️ Gemini embedding failed ({str(e)}). Using local TF-IDF vector store fallback...")
+        print(f"⚠️ Gemini embedding failed ({str(e)}). Using local vector fallback...")
         
-        # Local TF-IDF Fallback using scikit-learn
-        from sklearn.feature_extraction.text import TfidfVectorizer
-        
-        vectorizer = TfidfVectorizer(max_features=384)  # 384 dimensions
-        tfidf_matrix = vectorizer.fit_transform(texts).toarray()
-        
-        # If texts are very short, pad to 384 dimensions
-        if tfidf_matrix.shape[1] < 384:
-            pad_width = 384 - tfidf_matrix.shape[1]
-            tfidf_matrix = np.pad(tfidf_matrix, ((0, 0), (0, pad_width)), mode='constant')
+        # Pure Python / Numpy fallback vectorizer
+        embeddings = []
+        for text in texts:
+            # Generate deterministic 384-char vector representation
+            words = text.lower().split()
+            vec = np.zeros(384, dtype=np.float32)
+            for i, word in enumerate(words[:384]):
+                vec[i % 384] += sum(ord(c) for c in word) % 100 / 100.0
+            embeddings.append(vec)
             
-        return tfidf_matrix.astype(np.float32)
+        return np.array(embeddings, dtype=np.float32)
 
 
 def build_vector_store(chunks: list, save_path: str):
@@ -333,18 +332,11 @@ def get_answer_from_document(vector_store_path: str, question: str) -> str:
         )
     except Exception as e:
         print(f"⚠️ Query embedding fallback used...")
-        from sklearn.feature_extraction.text import TfidfVectorizer
-        vectorizer = TfidfVectorizer(max_features=384)
-        # Vectorize question + chunks together for vocabulary match
-        all_texts = [question] + chunks
-        matrix = vectorizer.fit_transform(all_texts).toarray()
-        q_vec = matrix[0:1]
-        
-        if q_vec.shape[1] < 384:
-            pad_width = 384 - q_vec.shape[1]
-            q_vec = np.pad(q_vec, ((0, 0), (0, pad_width)), mode='constant')
-            
-        question_vector = q_vec.astype(np.float32)
+        words = question.lower().split()
+        vec = np.zeros((1, 384), dtype=np.float32)
+        for i, word in enumerate(words[:384]):
+            vec[0, i % 384] += sum(ord(c) for c in word) % 100 / 100.0
+        question_vector = vec
 
     # Step 3: Find the top 5 most relevant chunks
     # k=5 means "find the 5 closest chunks"
