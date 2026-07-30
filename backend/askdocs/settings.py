@@ -100,13 +100,25 @@ import dj_database_url
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 if DATABASE_URL:
-    # Production Database (Aiven, PlanetScale, Railway, Render)
+    # Clean up ssl-mode query parameter for PyMySQL compatibility
+    cleaned_url = DATABASE_URL.replace('?ssl-mode=REQUIRED', '').replace('&ssl-mode=REQUIRED', '')
+    
+    db_config = dj_database_url.config(
+        default=cleaned_url,
+        conn_max_age=600,
+        ssl_require=False
+    )
+
+    # Remove any ssl-mode keys from OPTIONS
+    if 'OPTIONS' in db_config:
+        db_config['OPTIONS'].pop('ssl-mode', None)
+        db_config['OPTIONS'].pop('ssl_mode', None)
+        db_config['OPTIONS']['charset'] = 'utf8mb4'
+    else:
+        db_config['OPTIONS'] = {'charset': 'utf8mb4'}
+
     DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=False
-        )
+        'default': db_config
     }
 else:
     # Local MySQL Database
