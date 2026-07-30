@@ -1,0 +1,38 @@
+# AskDocs AI - Backend .gitignore
+# This tells Git what NOT to track/commit
+
+# ---- Environment Variables (NEVER commit these!) ----
+.env
+*.env
+
+# ---- Python Virtual Environment ----
+venv/
+env/
+.venv/
+
+# ---- Python Cache ----
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# ---- Django ----
+*.log
+db.sqlite3
+staticfiles/
+
+# ---- Media Files (uploaded documents) ----
+media/
+
+# ---- FAISS Vector Store Files ----
+vector_stores/
+
+# ---- IDE ----
+.vscode/
+.idea/
+*.swp
+
+# ---- OS Files ----
+.DS_Store
+Thumbs.db

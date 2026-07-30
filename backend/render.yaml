@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: askdocs-backend
+    env: python
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
+    startCommand: "gunicorn askdocs.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.11

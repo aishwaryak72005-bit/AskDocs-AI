@@ -1,0 +1,84 @@
+/* components/DocumentCard.css */
+
+.doc-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.doc-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-light);
+}
+
+/* Header: icon + title */
+.doc-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.doc-card-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.doc-card-meta {
+  flex: 1;
+  min-width: 0;  /* Allow text truncation */
+}
+
+.doc-card-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: var(--space-1);
+}
+
+.doc-card-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.doc-card-dot {
+  opacity: 0.5;
+}
+
+/* Status */
+.doc-card-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.doc-card-error {
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+  font-style: italic;
+}
+
+/* Actions */
+.doc-card-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+
+.doc-card-actions .btn {
+  flex: 1;
+  font-size: var(--font-size-xs);
+}

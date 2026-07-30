@@ -1,0 +1,365 @@
+/* pages/AboutPage.css — Modern Standard SaaS Design */
+
+.about-page {
+  background: #F8FAFC;
+  min-height: 100vh;
+}
+
+/* ============================================================
+   HERO SECTION
+   ============================================================ */
+.saas-about-hero {
+  background: linear-gradient(180deg, #EEF2FF 0%, #F8FAFC 100%);
+  padding: var(--space-16) 0 var(--space-12);
+  text-align: center;
+}
+
+.saas-hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.saas-hero-pill {
+  background: rgba(79, 70, 229, 0.08);
+  color: var(--color-primary);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.03em;
+}
+
+.saas-hero-title {
+  font-size: 3.2rem;
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-text-primary);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.text-primary-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.saas-hero-subtitle {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  max-width: 680px;
+}
+
+/* ============================================================
+   MAIN CONTAINER
+   ============================================================ */
+.saas-about-container {
+  padding-bottom: var(--space-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   MISSION SECTION
+   ============================================================ */
+.saas-mission-card {
+  background: white;
+  border-radius: var(--radius-2xl);
+  padding: var(--space-10);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+}
+
+.saas-mission-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: var(--space-10);
+  align-items: center;
+}
+
+.saas-section-tag {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+  display: block;
+}
+
+.saas-mission-text h2 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-4);
+  line-height: 1.25;
+}
+
+.saas-mission-text p {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: 1.75;
+  margin-bottom: var(--space-4);
+}
+
+.saas-mission-stat-box {
+  background: var(--gradient-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  box-shadow: var(--shadow-lg);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-num {
+  font-size: 2.8rem;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: var(--font-size-xs);
+  opacity: 0.9;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   SHARED SECTION HEADINGS
+   ============================================================ */
+.saas-header-center {
+  text-align: center;
+  max-width: 650px;
+  margin: 0 auto var(--space-8);
+}
+
+.saas-header-center h2 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.saas-header-center p {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================
+   VALUES GRID
+   ============================================================ */
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+}
+
+.value-card {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.value-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-light);
+}
+
+.value-icon {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-3);
+}
+
+.value-card h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.value-card p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.65;
+}
+
+/* ============================================================
+   AUDIENCE GRID
+   ============================================================ */
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-5);
+}
+
+.audience-card {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.audience-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.audience-icon {
+  font-size: 2.2rem;
+  margin-bottom: var(--space-3);
+}
+
+.audience-card h3 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.audience-card p {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* ============================================================
+   HOW WORKFLOW GRID
+   ============================================================ */
+.how-workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+.how-workflow-card {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  position: relative;
+  box-shadow: var(--shadow-sm);
+}
+
+.how-step-badge {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-primary);
+  background: #EEF2FF;
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-4);
+}
+
+.how-workflow-card h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.how-workflow-card p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.65;
+}
+
+/* ============================================================
+   CTA BANNER
+   ============================================================ */
+.saas-cta-banner {
+  background: var(--gradient-primary);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-12);
+  color: white;
+  text-align: center;
+  box-shadow: var(--shadow-xl);
+}
+
+.saas-cta-content {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.saas-cta-content h2 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.saas-cta-content p {
+  opacity: 0.9;
+  font-size: var(--font-size-base);
+}
+
+.saas-cta-buttons {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+  .saas-mission-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .audience-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .how-workflow-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .saas-hero-title {
+    font-size: 2.3rem;
+  }
+
+  .values-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .audience-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .saas-cta-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+}
