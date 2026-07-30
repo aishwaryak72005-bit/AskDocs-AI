@@ -7,6 +7,7 @@
 
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import Navbar from '../components/Navbar'
 import './AboutPage.css'
 
@@ -75,6 +76,8 @@ const howItWorks = [
 ]
 
 function AboutPage() {
+  const { isAuthenticated } = useAuth()
+
   return (
     <div className="about-page page-wrapper">
       <Navbar />
@@ -193,8 +196,17 @@ function AboutPage() {
             <h2>Experience the Future of Document Reading</h2>
             <p>Upload your first PDF or Word document today and start getting instant AI answers.</p>
             <div className="saas-cta-buttons">
-              <Link to="/register" className="btn btn-primary btn-lg">Get Started Free →</Link>
-              <Link to="/login" className="btn btn-secondary btn-lg" style={{ borderColor: 'rgba(255,255,255,0.4)', color: 'white' }}>Login to Account</Link>
+              {isAuthenticated ? (
+                <>
+                  <Link to="/dashboard" className="btn btn-primary btn-lg">Go to Dashboard →</Link>
+                  <Link to="/upload" className="btn btn-secondary btn-lg" style={{ borderColor: 'rgba(255,255,255,0.4)', color: 'white' }}>Upload Document</Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/register" className="btn btn-primary btn-lg">Get Started Free →</Link>
+                  <Link to="/login" className="btn btn-secondary btn-lg" style={{ borderColor: 'rgba(255,255,255,0.4)', color: 'white' }}>Login to Account</Link>
+                </>
+              )}
             </div>
           </div>
         </section>
