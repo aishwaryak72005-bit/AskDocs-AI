@@ -12,30 +12,19 @@ djangorestframework-simplejwt==5.3.1
 # CORS (allows React frontend to talk to Django)
 django-cors-headers==4.3.0
 
-# MySQL Database driver
-mysqlclient==2.2.0
+# Pure Python MySQL Driver (works everywhere without C compiler)
+PyMySQL==1.1.0
 
 # Environment variables (.env file support)
 python-dotenv==1.0.0
 
 # ---- Document Processing ----
-
-# PDF reading
 PyPDF2==3.0.1
-
-# Word document reading (.docx)
 python-docx==1.1.0
 
 # ---- AI and Vector Search ----
-
-# No LangChain needed — we wrote our own text splitter in utils/rag_helper.py
-# FAISS (vector similarity search)
-faiss-cpu==1.7.4
-
-# Google Gemini AI
+faiss-cpu
 google-generativeai==0.3.2
-
-# Numpy (required by FAISS for vector math)
 numpy==1.26.4
 
 # Production Web Server & Static Files

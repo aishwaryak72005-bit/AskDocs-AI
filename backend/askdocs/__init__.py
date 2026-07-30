@@ -1,5 +1,8 @@
 """
 askdocs/__init__.py
-
-This file marks 'askdocs' as a Python package.
 """
+import pymysql
+
+# Install PyMySQL as MySQLdb for Django database backend
+pymysql.install_as_MySQLdb()
+
