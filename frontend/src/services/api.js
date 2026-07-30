@@ -17,9 +17,10 @@
 
 import axios from 'axios'
 
-// Create a custom axios instance
+// Create Axios instance with base backend URL
 const api = axios.create({
-  baseURL: '/api',    // Vite proxy forwards this to http://localhost:8000/api
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  timeout: 60000,  // 60 seconds to allow Render free tier to wake up
   headers: {
     'Content-Type': 'application/json',
   },
