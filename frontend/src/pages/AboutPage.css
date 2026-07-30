@@ -1,4 +1,4 @@
-/* pages/AboutPage.css — Modern Standard SaaS Design */
+/* pages/AboutPage.css — Unique Product & FAQ Design */
 
 .about-page {
   background: #F8FAFC;
@@ -6,16 +6,17 @@
 }
 
 /* ============================================================
-   HERO SECTION
+   DARK HERO HEADER (Distinct from Landing Page)
    ============================================================ */
-.saas-about-hero {
-  background: linear-gradient(180deg, #EEF2FF 0%, #F8FAFC 100%);
+.about-hero-dark {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
   padding: var(--space-16) 0 var(--space-12);
+  color: white;
   text-align: center;
 }
 
-.saas-hero-content {
-  max-width: 800px;
+.about-hero-box {
+  max-width: 760px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -23,10 +24,10 @@
   gap: var(--space-4);
 }
 
-.saas-hero-pill {
-  background: rgba(79, 70, 229, 0.08);
-  color: var(--color-primary);
-  border: 1px solid rgba(79, 70, 229, 0.2);
+.about-pill-light {
+  background: rgba(255, 255, 255, 0.1);
+  color: #93C5FD;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
@@ -34,59 +35,94 @@
   letter-spacing: 0.03em;
 }
 
-.saas-hero-title {
-  font-size: 3.2rem;
+.about-hero-title-dark {
+  font-size: 3rem;
   font-weight: var(--font-weight-extrabold);
-  color: var(--color-text-primary);
   line-height: 1.15;
   letter-spacing: -0.02em;
 }
 
-.text-primary-gradient {
-  background: var(--gradient-primary);
+.title-highlight {
+  background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.saas-hero-subtitle {
+.about-hero-desc-dark {
   font-size: var(--font-size-lg);
-  color: var(--color-text-secondary);
+  color: #94A3B8;
   line-height: 1.7;
-  max-width: 680px;
 }
 
 /* ============================================================
-   MAIN CONTAINER
+   MAIN BODY
    ============================================================ */
-.saas-about-container {
+.about-body-container {
+  padding-top: var(--space-12);
   padding-bottom: var(--space-20);
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
-  max-width: 1100px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
 /* ============================================================
-   MISSION SECTION
+   VISION GRID (Problem vs Solution)
    ============================================================ */
-.saas-mission-card {
+.vision-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+}
+
+.vision-card {
   background: white;
   border-radius: var(--radius-2xl);
-  padding: var(--space-10);
+  padding: var(--space-8);
   border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-.saas-mission-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: var(--space-10);
-  align-items: center;
+.border-primary { border-top: 4px solid var(--color-primary); }
+.border-success { border-top: 4px solid var(--color-success); }
+
+.vision-tag {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  letter-spacing: 0.08em;
 }
 
-.saas-section-tag {
+.vision-tag.green { color: var(--color-success); }
+
+.vision-card h3 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.vision-card p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+/* ============================================================
+   WHO USES SECTION
+   ============================================================ */
+.section-title-wrap {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto var(--space-8);
+}
+
+.section-tag-sm {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
@@ -96,270 +132,166 @@
   display: block;
 }
 
-.saas-mission-text h2 {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-4);
-  line-height: 1.25;
-}
-
-.saas-mission-text p {
-  font-size: var(--font-size-base);
-  color: var(--color-text-secondary);
-  line-height: 1.75;
-  margin-bottom: var(--space-4);
-}
-
-.saas-mission-stat-box {
-  background: var(--gradient-primary);
-  border-radius: var(--radius-xl);
-  padding: var(--space-8);
-  color: white;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  box-shadow: var(--shadow-lg);
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-num {
-  font-size: 2.8rem;
-  font-weight: var(--font-weight-extrabold);
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: var(--font-size-xs);
-  opacity: 0.9;
-  margin-top: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* ============================================================
-   SHARED SECTION HEADINGS
-   ============================================================ */
-.saas-header-center {
-  text-align: center;
-  max-width: 650px;
-  margin: 0 auto var(--space-8);
-}
-
-.saas-header-center h2 {
+.section-title-wrap h2 {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
   margin-bottom: var(--space-2);
 }
 
-.saas-header-center p {
+.section-title-wrap p {
   font-size: var(--font-size-base);
   color: var(--color-text-secondary);
 }
 
-/* ============================================================
-   VALUES GRID
-   ============================================================ */
-.values-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-6);
-}
-
-.value-card {
-  background: white;
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
-}
-
-.value-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-primary-light);
-}
-
-.value-icon {
-  font-size: 2.5rem;
-  margin-bottom: var(--space-3);
-}
-
-.value-card h3 {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-2);
-}
-
-.value-card p {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  line-height: 1.65;
-}
-
-/* ============================================================
-   AUDIENCE GRID
-   ============================================================ */
-.audience-grid {
+.audience-grid-new {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-5);
+  gap: var(--space-4);
 }
 
-.audience-card {
+.audience-card-new {
   background: white;
   border-radius: var(--radius-xl);
   padding: var(--space-5);
   border: 1px solid var(--color-border);
-  text-align: center;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transition: transform var(--transition-fast);
 }
 
-.audience-card:hover {
+.audience-card-new:hover {
   transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
 }
 
-.audience-icon {
-  font-size: 2.2rem;
-  margin-bottom: var(--space-3);
-}
-
-.audience-card h3 {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary);
+.aud-icon {
+  font-size: 2rem;
   margin-bottom: var(--space-2);
 }
 
-.audience-card p {
+.audience-card-new h3 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.audience-card-new p {
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   line-height: 1.6;
 }
 
 /* ============================================================
-   HOW WORKFLOW GRID
+   FAQ ACCORDION
    ============================================================ */
-.how-workflow-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-6);
+.faq-accordion-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-.how-workflow-card {
+.faq-item {
   background: white;
   border-radius: var(--radius-xl);
-  padding: var(--space-6);
   border: 1px solid var(--color-border);
-  position: relative;
+  padding: var(--space-5) var(--space-6);
+  cursor: pointer;
   box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
 }
 
-.how-step-badge {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-extrabold);
-  color: var(--color-primary);
-  background: #EEF2FF;
-  width: 50px;
-  height: 50px;
-  border-radius: var(--radius-lg);
+.faq-item:hover {
+  border-color: var(--color-primary-light);
+}
+
+.faq-item-open {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.faq-question-row {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  margin-bottom: var(--space-4);
+  gap: var(--space-4);
 }
 
-.how-workflow-card h3 {
-  font-size: var(--font-size-lg);
+.faq-question-row h3 {
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
-  margin-bottom: var(--space-2);
 }
 
-.how-workflow-card p {
+.faq-icon-toggle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.faq-answer-content {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.faq-answer-content p {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
-  line-height: 1.65;
+  line-height: 1.7;
 }
 
 /* ============================================================
-   CTA BANNER
+   ACTION BAR
    ============================================================ */
-.saas-cta-banner {
-  background: var(--gradient-primary);
+.about-action-bar {
+  background: white;
   border-radius: var(--radius-2xl);
-  padding: var(--space-12);
-  color: white;
-  text-align: center;
-  box-shadow: var(--shadow-xl);
-}
-
-.saas-cta-content {
-  max-width: 600px;
-  margin: 0 auto;
+  border: 1.5px solid var(--color-border);
+  padding: var(--space-8) var(--space-10);
   display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+  justify-content: space-between;
   align-items: center;
+  gap: var(--space-6);
+  box-shadow: var(--shadow-md);
 }
 
-.saas-cta-content h2 {
-  font-size: var(--font-size-3xl);
+.action-bar-text h3 {
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
 }
 
-.saas-cta-content p {
-  opacity: 0.9;
-  font-size: var(--font-size-base);
-}
-
-.saas-cta-buttons {
-  display: flex;
-  gap: var(--space-4);
-  margin-top: var(--space-2);
+.action-bar-text p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
 }
 
 /* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 1024px) {
-  .saas-mission-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .audience-grid {
+  .audience-grid-new {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .how-workflow-grid {
-    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .saas-hero-title {
-    font-size: 2.3rem;
-  }
-
-  .values-grid {
+  .vision-grid {
     grid-template-columns: 1fr;
   }
 
-  .audience-grid {
+  .audience-grid-new {
     grid-template-columns: 1fr;
   }
 
-  .saas-cta-buttons {
+  .about-action-bar {
     flex-direction: column;
-    width: 100%;
+    text-align: center;
   }
 }
