@@ -100,39 +100,41 @@ import dj_database_url
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 if DATABASE_URL:
-    # Clean up ssl-mode query parameter for PyMySQL compatibility
-    cleaned_url = DATABASE_URL.replace('?ssl-mode=REQUIRED', '').replace('&ssl-mode=REQUIRED', '')
-    
-    db_config = dj_database_url.config(
-        default=cleaned_url,
-        conn_max_age=600,
-        ssl_require=False
-    )
+    try:
+        # Clean up ssl-mode query parameter for PyMySQL compatibility
+        cleaned_url = DATABASE_URL.replace('?ssl-mode=REQUIRED', '').replace('&ssl-mode=REQUIRED', '')
+        
+        db_config = dj_database_url.config(
+            default=cleaned_url,
+            conn_max_age=600,
+            ssl_require=False
+        )
 
-    # Remove any ssl-mode keys from OPTIONS
-    if 'OPTIONS' in db_config:
-        db_config['OPTIONS'].pop('ssl-mode', None)
-        db_config['OPTIONS'].pop('ssl_mode', None)
-        db_config['OPTIONS']['charset'] = 'utf8mb4'
-    else:
-        db_config['OPTIONS'] = {'charset': 'utf8mb4'}
+        # Remove any ssl-mode keys from OPTIONS
+        if 'OPTIONS' in db_config:
+            db_config['OPTIONS'].pop('ssl-mode', None)
+            db_config['OPTIONS'].pop('ssl_mode', None)
+            db_config['OPTIONS']['charset'] = 'utf8mb4'
+        else:
+            db_config['OPTIONS'] = {'charset': 'utf8mb4'}
 
-    DATABASES = {
-        'default': db_config
-    }
+        DATABASES = {
+            'default': db_config
+        }
+    except Exception as e:
+        print(f"⚠️ DATABASE_URL failed ({str(e)}). Falling back to SQLite...")
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 else:
-    # Local MySQL Database
+    # Fallback to SQLite for zero-config production reliability
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.getenv('DB_NAME', 'askdocs_db'),
-            'USER': os.getenv('DB_USER', 'root'),
-            'PASSWORD': os.getenv('DB_PASSWORD', ''),
-            'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', '3306'),
-            'OPTIONS': {
-                'charset': 'utf8mb4',
-            }
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
