@@ -32,30 +32,37 @@ class RegisterView(APIView):
     permission_classes = [AllowAny]  # Anyone can access this
 
     def post(self, request):
-        # Pass the request data to the serializer for validation
-        serializer = RegisterSerializer(data=request.data)
+        try:
+            # Pass the request data to the serializer for validation
+            serializer = RegisterSerializer(data=request.data)
 
-        if serializer.is_valid():
-            # Create the new user
-            user = serializer.save()
+            if serializer.is_valid():
+                # Create the new user
+                user = serializer.save()
 
-            # Generate JWT tokens for the new user
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
+                # Generate JWT tokens for the new user
+                refresh = RefreshToken.for_user(user)
+                access_token = str(refresh.access_token)
 
+                return Response({
+                    'message': 'Account created successfully!',
+                    'user': UserSerializer(user).data,
+                    'tokens': {
+                        'access': access_token,
+                        'refresh': str(refresh),
+                    }
+                }, status=status.HTTP_201_CREATED)
+
+            # If validation fails, return the errors
             return Response({
-                'message': 'Account created successfully!',
-                'user': UserSerializer(user).data,
-                'tokens': {
-                    'access': access_token,
-                    'refresh': str(refresh),
-                }
-            }, status=status.HTTP_201_CREATED)
+                'error': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-        # If validation fails, return the errors
-        return Response({
-            'error': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"❌ REGISTER ERROR: {type(e).__name__}: {str(e)}")
+            return Response({
+                'error': f'Registration failed: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class LoginView(APIView):
@@ -69,46 +76,53 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        email = request.data.get('email', '').strip()
-        password = request.data.get('password', '')
-
-        # Basic validation
-        if not email or not password:
-            return Response({
-                'error': 'Email and password are required.'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # Find the user by email
         try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
+            email = request.data.get('email', '').strip()
+            password = request.data.get('password', '')
+
+            # Basic validation
+            if not email or not password:
+                return Response({
+                    'error': 'Email and password are required.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Find the user by email
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                return Response({
+                    'error': 'No account found with this email.'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            # Check password
+            if not user.check_password(password):
+                return Response({
+                    'error': 'Incorrect password. Please try again.'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+
+            # Check if account is active
+            if not user.is_active:
+                return Response({
+                    'error': 'Your account has been deactivated.'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+
             return Response({
-                'error': 'No account found with this email.'
-            }, status=status.HTTP_404_NOT_FOUND)
+                'message': 'Login successful!',
+                'user': UserSerializer(user).data,
+                'tokens': {
+                    'access': str(refresh.access_token),
+                    'refresh': str(refresh),
+                }
+            }, status=status.HTTP_200_OK)
 
-        # Check password
-        if not user.check_password(password):
+        except Exception as e:
+            print(f"❌ LOGIN ERROR: {type(e).__name__}: {str(e)}")
             return Response({
-                'error': 'Incorrect password. Please try again.'
-            }, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Check if account is active
-        if not user.is_active:
-            return Response({
-                'error': 'Your account has been deactivated.'
-            }, status=status.HTTP_403_FORBIDDEN)
-
-        # Generate JWT tokens
-        refresh = RefreshToken.for_user(user)
-
-        return Response({
-            'message': 'Login successful!',
-            'user': UserSerializer(user).data,
-            'tokens': {
-                'access': str(refresh.access_token),
-                'refresh': str(refresh),
-            }
-        }, status=status.HTTP_200_OK)
+                'error': f'Login failed: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class LogoutView(APIView):

@@ -23,8 +23,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ============================================================
 # SECURITY SETTINGS
 # ============================================================
-# Secret key — keep this secret in production!
-SECRET_KEY = os.getenv('SECRET_KEY', 'askdocs-super-secret-key-2024-bca-project')
+# Secret key — MUST be at least 32 characters long for PyJWT SHA256 security!
+SECRET_KEY = os.getenv('SECRET_KEY', 'askdocs-super-secret-key-production-2026-bca-project-secure-key-64chars')
 
 # Debug mode — set to False in production
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
