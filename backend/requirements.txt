@@ -12,6 +12,9 @@ djangorestframework-simplejwt==5.3.1
 # CORS (allows React frontend to talk to Django)
 django-cors-headers==4.3.0
 
+# PostgreSQL Database driver (for Render PostgreSQL)
+psycopg2-binary==2.9.9
+
 # Pure Python MySQL Driver (works everywhere without C compiler)
 PyMySQL==1.1.0
 
