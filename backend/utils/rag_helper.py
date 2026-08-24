@@ -382,27 +382,29 @@ ANSWER:"""
     # --- IF GROQ KEY (starts with gsk_) ---
     if api_key.startswith('gsk_'):
         print("🚀 Using Groq Free Llama 3 API...")
-        try:
-            res = requests.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": "llama-3.1-8b-instant",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.3
-                },
-                timeout=15
-            )
-            if res.status_code == 200:
-                data = res.json()
-                return data['choices'][0]['message']['content']
-            else:
-                print("Groq Error:", res.text)
-        except Exception as e:
-            print("Groq Exception:", e)
+        groq_models = ["llama-3.3-70b-versatile", "llama3-8b-8192", "llama-3.1-8b-instant", "mixtral-8x7b-32768"]
+        for g_model in groq_models:
+            try:
+                res = requests.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": g_model,
+                        "messages": [{"role": "user", "content": prompt}],
+                        "temperature": 0.3
+                    },
+                    timeout=15
+                )
+                if res.status_code == 200:
+                    data = res.json()
+                    return data['choices'][0]['message']['content']
+                else:
+                    print(f"Groq {g_model} Error:", res.status_code, res.text)
+            except Exception as e:
+                print(f"Groq {g_model} Exception:", e)
 
     # --- IF GEMINI KEY (starts with AIzaSy) ---
     print("🤖 Using Google Gemini API...")
