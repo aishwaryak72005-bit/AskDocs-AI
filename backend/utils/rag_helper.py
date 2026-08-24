@@ -435,33 +435,28 @@ ANSWER:"""
         except Exception as e:
             print(f"Gemini {model_name} Exception:", e)
 
-    # If AI API call fails or key is missing, trigger smart local document extractor
-    print("⚠️ AI API key missing or offline. Using local document extractor fallback...")
+    # If AI API calls fail (key expired/revoked), trigger smart local document summarizer
+    print("⚠️ AI API key invalid or offline. Generating answer using local document summarizer...")
     
     q_words = set(w.lower() for w in question.split() if len(w) > 2)
-    matched_sentences = []
+    matched_paragraphs = []
     
     for chunk in relevant_chunks:
-        lines = [l.strip() for l in chunk.replace('\r', '\n').split('\n') if l.strip()]
-        for line in lines:
-            line_words = set(w.lower() for w in line.split())
-            overlap_score = len(q_words.intersection(line_words))
-            if overlap_score > 0 or 'summary' in question.lower() or 'key' in question.lower() or 'what' in question.lower():
-                matched_sentences.append((overlap_score, line))
+        paragraphs = [p.strip() for p in chunk.split('\n\n') if len(p.strip()) > 20]
+        for p in paragraphs:
+            p_words = set(w.lower() for w in p.split())
+            score = len(q_words.intersection(p_words))
+            if score > 0 or any(k in question.lower() for k in ['summary', 'key', 'what', 'explain', 'describe']):
+                matched_paragraphs.append((score, p))
 
-    matched_sentences.sort(key=lambda x: x[0], reverse=True)
-    top_lines = list(dict.fromkeys([s[1] for s in matched_sentences[:6]]))
+    matched_paragraphs.sort(key=lambda x: x[0], reverse=True)
+    top_paragraphs = list(dict.fromkeys([p[1] for p in matched_paragraphs[:3]]))
 
-    if not top_lines:
-        return "I couldn't find this information in the uploaded document."
+    if not top_paragraphs:
+        return "I couldn't find relevant information in the uploaded document to answer this question."
 
-    formatted_answer = f"### Key Information from Document\n\nBased on your document context:\n\n"
-    for line in top_lines:
-        words = line.split()
-        if len(words) > 3:
-            line_formatted = f"• **{words[0]} {words[1]}**: {' '.join(words[2:])}"
-        else:
-            line_formatted = f"• {line}"
-        formatted_answer += f"{line_formatted}\n"
+    formatted_answer = "### Document Context Summary\n\n"
+    for p in top_paragraphs:
+        formatted_answer += f"{p.strip()}\n\n"
 
-    return formatted_answer
+    return formatted_answer.strip()
