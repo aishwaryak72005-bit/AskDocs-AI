@@ -376,7 +376,8 @@ ANSWER:"""
 
     # Re-read .env to catch any recent key updates
     load_dotenv(override=True)
-    api_key = os.getenv('GEMINI_API_KEY', getattr(settings, 'GEMINI_API_KEY', '')).strip()
+    raw_key = os.getenv('GEMINI_API_KEY', getattr(settings, 'GEMINI_API_KEY', '')).strip()
+    api_key = raw_key.replace('"', '').replace("'", '').strip()
     print(f"🔑 Active API Key Prefix: {api_key[:8]}...")
 
     # --- IF GROQ KEY (starts with gsk_) ---
