@@ -332,41 +332,32 @@ def get_answer_from_document(vector_store_path: str, question: str) -> str:
         print(f"❌ Error loading vector store: {e}")
         return "Failed to load document content. Please try uploading the document again."
 
-    # Step 2: Convert question to embedding vector
+    # Step 2: Convert question to lightweight 384-dim vector (0 MB memory overhead)
     import numpy as np
-    question_vector = None
+    import math
 
-    # Normalize query (e.g., 'call back' -> 'callback' to catch space variations)
     normalized_question = question
     for spaced, joined in [("call back", "callback"), ("java script", "javascript"), ("front end", "frontend"), ("back end", "backend")]:
         if spaced in normalized_question.lower():
             normalized_question += f" {joined}"
 
-    # Try sentence_transformers (free, local, no API key needed)
-    try:
-        from sentence_transformers import SentenceTransformer
-        st_model = SentenceTransformer('all-MiniLM-L6-v2')
-        q_emb = np.array(st_model.encode([normalized_question])[0], dtype=np.float32)
-        index_dim = index.d
-        # Resize embedding to match FAISS index dimension
-        if len(q_emb) < index_dim:
-            q_emb = np.pad(q_emb, (0, index_dim - len(q_emb)))
-        elif len(q_emb) > index_dim:
-            q_emb = q_emb[:index_dim]
-        question_vector = np.array([q_emb], dtype=np.float32)
-        print(f"✅ Query embedded with SentenceTransformer (dim={index_dim})")
-    except Exception as e:
-        print(f"⚠️ SentenceTransformer failed: {e}")
+    index_dim = index.d
+    q_vec = np.zeros(index_dim, dtype=np.float32)
+    q_words = [''.join(c for c in w if c.isalnum()) for w in normalized_question.lower().split()]
+    q_len = max(1, len(q_words))
 
-    # Fallback: keyword-based vector if embedding fails
-    if question_vector is None:
-        print("⚠️ Using keyword fallback embedding...")
-        index_dim = index.d
-        vec = np.zeros((1, index_dim), dtype=np.float32)
-        words = question.lower().split()
-        for i, word in enumerate(words[:index_dim]):
-            vec[0, i % index_dim] += sum(ord(c) for c in word) % 100 / 100.0
-        question_vector = vec
+    # Match words against document vocabulary space
+    for w in q_words:
+        if len(w) > 1:
+            idx = sum(ord(c) for c in w) % index_dim
+            q_vec[idx] += 1.0 / q_len
+
+    norm = np.linalg.norm(q_vec)
+    if norm > 0:
+        q_vec = q_vec / norm
+
+    question_vector = np.array([q_vec], dtype=np.float32)
+    print(f"⚡ Instant query vector generated (dim={index_dim})!")
 
     # Step 3: Find the top 8 most relevant chunks
     k = min(8, len(chunks))
