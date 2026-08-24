@@ -317,11 +317,17 @@ def get_answer_from_document(vector_store_path: str, question: str) -> str:
     import numpy as np
     question_vector = None
 
+    # Normalize query (e.g., 'call back' -> 'callback' to catch space variations)
+    normalized_question = question
+    for spaced, joined in [("call back", "callback"), ("java script", "javascript"), ("front end", "frontend"), ("back end", "backend")]:
+        if spaced in normalized_question.lower():
+            normalized_question += f" {joined}"
+
     # Try sentence_transformers (free, local, no API key needed)
     try:
         from sentence_transformers import SentenceTransformer
         st_model = SentenceTransformer('all-MiniLM-L6-v2')
-        q_emb = np.array(st_model.encode([question])[0], dtype=np.float32)
+        q_emb = np.array(st_model.encode([normalized_question])[0], dtype=np.float32)
         index_dim = index.d
         # Resize embedding to match FAISS index dimension
         if len(q_emb) < index_dim:
