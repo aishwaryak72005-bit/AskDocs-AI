@@ -142,28 +142,41 @@ def split_into_chunks(text: str, chunk_size: int = 1000, overlap: int = 200) -> 
 def get_embeddings(texts: list) -> np.ndarray:
     """
     Convert a list of text chunks into numerical vectors (embeddings).
-    Uses SentenceTransformer (all-MiniLM-L6-v2) for free, local, 384-dim embeddings.
-    Falls back to keyword vectors if SentenceTransformer is unavailable.
+    Fast, lightweight 384-dim vectorizer optimized for instant processing on Render free tier.
     """
-    # Try SentenceTransformer first (free, local, consistent 384-dim)
-    try:
-        from sentence_transformers import SentenceTransformer
-        st_model = SentenceTransformer('all-MiniLM-L6-v2')
-        embeddings = st_model.encode(texts, show_progress_bar=False)
-        print(f"✅ Built embeddings with SentenceTransformer (shape={embeddings.shape})")
-        return np.array(embeddings, dtype=np.float32)
-    except Exception as e:
-        print(f"⚠️ SentenceTransformer failed ({e}). Using keyword fallback...")
+    import math
 
-    # Pure NumPy fallback — deterministic 384-dim keyword vectors
+    # Calculate vocabulary frequencies across all chunks for TF-IDF embedding
+    vocab = {}
+    for text in texts:
+        for word in text.lower().split():
+            clean_word = ''.join(c for c in word if c.isalnum())
+            if len(clean_word) > 2:
+                vocab[clean_word] = vocab.get(clean_word, 0) + 1
+
+    top_words = [w for w, _ in sorted(vocab.items(), key=lambda x: x[1], reverse=True)[:384]]
+    word_to_idx = {w: i for i, w in enumerate(top_words)}
+
     embeddings = []
     for text in texts:
-        words = text.lower().split()
         vec = np.zeros(384, dtype=np.float32)
-        for i, word in enumerate(words[:384]):
-            vec[i % 384] += sum(ord(c) for c in word) % 100 / 100.0
+        words = [ ''.join(c for c in w if c.isalnum()) for w in text.lower().split() ]
+        doc_len = max(1, len(words))
+        
+        for w in words:
+            if w in word_to_idx:
+                idx = word_to_idx[w]
+                # TF-IDF weight calculation
+                tf = words.count(w) / doc_len
+                idf = math.log((len(texts) + 1) / (vocab.get(w, 1) + 1)) + 1
+                vec[idx] = tf * idf
+                
+        norm = np.linalg.norm(vec)
+        if norm > 0:
+            vec = vec / norm
         embeddings.append(vec)
 
+    print(f"⚡ Instant vector store generated for {len(texts)} chunks!")
     return np.array(embeddings, dtype=np.float32)
 
 
