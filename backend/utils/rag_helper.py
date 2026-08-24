@@ -142,36 +142,29 @@ def split_into_chunks(text: str, chunk_size: int = 1000, overlap: int = 200) -> 
 def get_embeddings(texts: list) -> np.ndarray:
     """
     Convert a list of text chunks into numerical vectors (embeddings).
-    Tries Google Gemini embedding model first.
-    If Gemini embedding fails or key is invalid, falls back to local TF-IDF vectors
-    so document upload NEVER fails!
+    Uses SentenceTransformer (all-MiniLM-L6-v2) for free, local, 384-dim embeddings.
+    Falls back to keyword vectors if SentenceTransformer is unavailable.
     """
+    # Try SentenceTransformer first (free, local, consistent 384-dim)
     try:
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        embeddings = []
-        for text in texts:
-            result = genai.embed_content(
-                model="models/text-embedding-004",
-                content=text,
-                task_type="retrieval_document"
-            )
-            embeddings.append(result['embedding'])
+        from sentence_transformers import SentenceTransformer
+        st_model = SentenceTransformer('all-MiniLM-L6-v2')
+        embeddings = st_model.encode(texts, show_progress_bar=False)
+        print(f"✅ Built embeddings with SentenceTransformer (shape={embeddings.shape})")
         return np.array(embeddings, dtype=np.float32)
-
     except Exception as e:
-        print(f"⚠️ Gemini embedding failed ({str(e)}). Using local vector fallback...")
-        
-        # Pure Python / Numpy fallback vectorizer
-        embeddings = []
-        for text in texts:
-            # Generate deterministic 384-char vector representation
-            words = text.lower().split()
-            vec = np.zeros(384, dtype=np.float32)
-            for i, word in enumerate(words[:384]):
-                vec[i % 384] += sum(ord(c) for c in word) % 100 / 100.0
-            embeddings.append(vec)
-            
-        return np.array(embeddings, dtype=np.float32)
+        print(f"⚠️ SentenceTransformer failed ({e}). Using keyword fallback...")
+
+    # Pure NumPy fallback — deterministic 384-dim keyword vectors
+    embeddings = []
+    for text in texts:
+        words = text.lower().split()
+        vec = np.zeros(384, dtype=np.float32)
+        for i, word in enumerate(words[:384]):
+            vec[i % 384] += sum(ord(c) for c in word) % 100 / 100.0
+        embeddings.append(vec)
+
+    return np.array(embeddings, dtype=np.float32)
 
 
 def build_vector_store(chunks: list, save_path: str):
@@ -321,30 +314,41 @@ def get_answer_from_document(vector_store_path: str, question: str) -> str:
     chunks = vector_store['chunks']
 
     # Step 2: Convert question to embedding vector
+    import numpy as np
+    question_vector = None
+
+    # Try sentence_transformers (free, local, no API key needed)
     try:
-        question_embedding = genai.embed_content(
-            model="models/text-embedding-004",
-            content=question,
-            task_type="retrieval_query"
-        )
-        question_vector = np.array(
-            [question_embedding['embedding']], dtype=np.float32
-        )
+        from sentence_transformers import SentenceTransformer
+        st_model = SentenceTransformer('all-MiniLM-L6-v2')
+        q_emb = np.array(st_model.encode([question])[0], dtype=np.float32)
+        index_dim = index.d
+        # Resize embedding to match FAISS index dimension
+        if len(q_emb) < index_dim:
+            q_emb = np.pad(q_emb, (0, index_dim - len(q_emb)))
+        elif len(q_emb) > index_dim:
+            q_emb = q_emb[:index_dim]
+        question_vector = np.array([q_emb], dtype=np.float32)
+        print(f"✅ Query embedded with SentenceTransformer (dim={index_dim})")
     except Exception as e:
-        print(f"⚠️ Query embedding fallback used...")
+        print(f"⚠️ SentenceTransformer failed: {e}")
+
+    # Fallback: keyword-based vector if embedding fails
+    if question_vector is None:
+        print("⚠️ Using keyword fallback embedding...")
+        index_dim = index.d
+        vec = np.zeros((1, index_dim), dtype=np.float32)
         words = question.lower().split()
-        vec = np.zeros((1, 384), dtype=np.float32)
-        for i, word in enumerate(words[:384]):
-            vec[0, i % 384] += sum(ord(c) for c in word) % 100 / 100.0
+        for i, word in enumerate(words[:index_dim]):
+            vec[0, i % index_dim] += sum(ord(c) for c in word) % 100 / 100.0
         question_vector = vec
 
-    # Step 3: Find the top 5 most relevant chunks
-    # k=5 means "find the 5 closest chunks"
-    k = min(5, len(chunks))  # Don't request more than we have
-    distances, indices = index.search(question_vector, k)
+    # Step 3: Find the top 8 most relevant chunks
+    k = min(8, len(chunks))
+    distances, indices_result = index.search(question_vector, k)
 
-    # Get the actual text of the relevant chunks
-    relevant_chunks = [chunks[i] for i in indices[0] if i < len(chunks)]
+    # Get the actual text of the relevant chunks (filter out invalid FAISS indices)
+    relevant_chunks = [chunks[i] for i in indices_result[0] if 0 <= i < len(chunks)]
 
     # Combine the relevant chunks into one context block
     context = "\n\n---\n\n".join(relevant_chunks)
@@ -402,19 +406,32 @@ Final Answer (no thinking steps, direct response only):"""
             all_models = [m['id'] for m in models_res.json().get('data', [])]
             print(f"📋 Available models: {all_models}")
             # Prefer fast text models, filter out vision/image models
-            # Prefer non-thinking models (no deepseek-r1, no whisper, no vision)
+            # Prefer full chat/instruct models only (exclude guard, safety, whisper, tts, vision, arabic)
             preferred = [
-                'llama-3.3-70b-versatile', 'llama-3.1-8b-instant',
-                'llama-3.1-70b-versatile', 'llama-3.3-70b-specdec',
-                'llama3-70b-8192', 'llama3-8b-8192',
                 'meta-llama/llama-4-scout-17b-16e-instruct',
                 'meta-llama/llama-4-maverick-17b-128e-instruct',
-                'gemma2-9b-it', 'gemma-7b-it',
+                'llama-3.3-70b-versatile',
+                'llama-3.1-8b-instant',
+                'llama-3.1-70b-versatile',
+                'llama3-70b-8192',
+                'llama3-8b-8192',
+                'openai/gpt-oss-120b',
+                'qwen/qwen3.6-27b',
+                'qwen/qwen3.6-2/b',
+                'gemma2-9b-it',
+                'allam-2-7b',
+            ]
+            # Exclude non-chat models
+            skip_keywords = [
+                'whisper', 'vision', 'deepseek', 'guard', 'safeguard',
+                'orpheus', 'compound', 'arabic', 'tts', 'r1', 'turbo'
             ]
             groq_models = [m for m in preferred if m in all_models]
             if not groq_models:
-                # Skip thinking/whisper/vision models
-                groq_models = [m for m in all_models if 'whisper' not in m and 'vision' not in m and 'deepseek' not in m][:5]
+                groq_models = [
+                    m for m in all_models
+                    if not any(k in m.lower() for k in skip_keywords)
+                ][:5]
         else:
             print(f"❌ Models endpoint error: {models_res.text[:200]}")
     except Exception as e:
@@ -444,6 +461,12 @@ Final Answer (no thinking steps, direct response only):"""
             if res.status_code == 200:
                 data = res.json()
                 answer = data['choices'][0]['message']['content']
+                # Strip <think>...</think> blocks (for thinking models like DeepSeek R1)
+                import re
+                answer = re.sub(r'<think>.*?</think>', '', answer, flags=re.DOTALL).strip()
+                # Also handle case where content appears before </think> closing tag
+                if '</think>' in answer:
+                    answer = answer[answer.rfind('</think>') + len('</think>'):].strip()
                 print(f"✅ Groq SUCCESS using {g_model}!")
                 return answer
             else:
