@@ -412,11 +412,8 @@ Final Answer (no thinking steps, direct response only):"""
 
     print(f"🚀 Calling Groq API (Key: {groq_key[:12]}...)...")
 
-    # Step 5a: Groq Model Fallback Chain (high-capacity models first)
+    # Step 5a: Only active, verified models for this Groq key
     groq_models = [
-        "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant",
-        "gemma2-9b-it",
         "openai/gpt-oss-120b",
         "qwen/qwen3.6-27b"
     ]
