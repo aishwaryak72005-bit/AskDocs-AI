@@ -368,80 +368,58 @@ USER QUESTION: {question}
 
 ANSWER:"""
 
-    # Step 5: Call AI Provider (Direct HTTP REST API - zero library bugs!)
+    # Step 5: Call Groq Llama 3 REST API
     import requests
     import json
     from dotenv import load_dotenv
     import os
 
-    # Re-read .env to catch any recent key updates (support both GEMINI_API_KEY and GROQ_API_KEY)
-    load_dotenv(override=True)
-    raw_key = (os.getenv('GEMINI_API_KEY') or os.getenv('GROQ_API_KEY') or getattr(settings, 'GEMINI_API_KEY', '')).strip()
+    # Load environment variables
+    env_path = settings.BASE_DIR / '.env'
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path, override=True)
+    
+    raw_key = (os.getenv('GEMINI_API_KEY') or os.getenv('GROQ_API_KEY') or getattr(settings, 'GEMINI_API_KEY', '') or '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').strip()
     api_key = raw_key.replace('"', '').replace("'", '').strip()
-    print(f"🔑 Active API Key Prefix: {api_key[:8]}...")
-
-    # --- IF GROQ KEY (contains gsk_) ---
+    
+    # Extract clean Groq API key (starts with gsk_)
+    groq_key = api_key
     if 'gsk_' in api_key:
-        print(f"🚀 Using Groq API with key {api_key[:12]}...")
         idx = api_key.find('gsk_')
-        groq_key = api_key[idx:].split()[0].replace('"', '').replace("'", '').strip()
-        
-        groq_models = ["llama3-70b-8192", "gemma2-9b-it", "llama-3.2-3b-preview", "llama-3.1-70b-versatile"]
-        for g_model in groq_models:
-            try:
-                res = requests.post(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {groq_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": g_model,
-                        "messages": [{"role": "user", "content": prompt}],
-                        "temperature": 0.3
-                    },
-                    timeout=15
-                )
-                print(f"📡 Groq [{g_model}] Status Code: {res.status_code}")
-                if res.status_code == 200:
-                    data = res.json()
-                    return data['choices'][0]['message']['content']
-                else:
-                    print(f"❌ Groq [{g_model}] Error Response: {res.text}")
-            except Exception as e:
-                print(f"❌ Groq [{g_model}] Exception: {e}")
+        groq_key = api_key[idx:].split()[0].rstrip(';,.\'"').strip()
 
-    # --- IF GEMINI KEY (contains AIzaSy) ---
-    if 'AIzaSy' in api_key:
-        print("🤖 Using Google Gemini API...")
-        idx = api_key.find('AIzaSy')
-        gemini_key = api_key[idx:].split()[0].replace('"', '').replace("'", '').strip()
-        
-        for model_name in ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]:
-            try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
-                res = requests.post(
-                    url,
-                    headers={"Content-Type": "application/json"},
-                    json={
-                        "contents": [{
-                            "parts": [{"text": prompt}]
-                        }]
-                    },
-                    timeout=15
-                )
-                print(f"📡 Gemini [{model_name}] Status Code: {res.status_code}")
-                if res.status_code == 200:
-                    data = res.json()
-                    answer_text = data['candidates'][0]['content']['parts'][0]['text']
-                    return answer_text
-                else:
-                    print(f"❌ Gemini {model_name} Error:", res.status_code, res.text)
-            except Exception as e:
-                print(f"❌ Gemini {model_name} Exception:", e)
+    print(f"🚀 Calling Groq Llama 3 API (Key: {groq_key[:12]}...)...")
 
-    # If AI API calls fail (key expired/revoked), trigger smart local document summarizer
-    print("⚠️ AI API key invalid or offline. Generating answer using local document summarizer...")
+    groq_models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.2-3b-preview", "deepseek-r1-distill-llama-70b"]
+    
+    for g_model in groq_models:
+        try:
+            res = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {groq_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": g_model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.3
+                },
+                timeout=15
+            )
+            print(f"📡 Groq [{g_model}] Status Code: {res.status_code}")
+            if res.status_code == 200:
+                data = res.json()
+                answer = data['choices'][0]['message']['content']
+                print(f"✅ Groq SUCCESS using {g_model}!")
+                return answer
+            else:
+                print(f"❌ Groq [{g_model}] Error ({res.status_code}): {res.text[:150]}")
+        except Exception as e:
+            print(f"❌ Groq [{g_model}] Exception: {e}")
+
+    # Fallback to local document extraction if offline
+    print("⚠️ Groq API offline or rate-limited. Generating answer using local document summarizer...")
     
     q_words = set(w.lower() for w in question.split() if len(w) > 2)
     matched_paragraphs = []
@@ -449,7 +427,6 @@ ANSWER:"""
     for chunk in relevant_chunks:
         paragraphs = [p.strip() for p in chunk.split('\n\n') if len(p.strip()) > 20]
         for p in paragraphs:
-            # Clean single line breaks into spaces so words flow smoothly
             clean_p = ' '.join(p.split())
             p_words = set(w.lower() for w in clean_p.split())
             score = len(q_words.intersection(p_words))
