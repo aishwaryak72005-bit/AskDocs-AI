@@ -77,20 +77,15 @@ class DocumentUploadView(APIView):
             status=Document.STATUS_PENDING
         )
 
-        # -------------------------------------------------------
-        # Process the document in the background using a thread.
-        # This way, the API responds immediately and the user
-        # doesn't have to wait for text extraction & FAISS building.
-        # -------------------------------------------------------
-        thread = threading.Thread(
-            target=process_document,
-            args=(document.id,)
-        )
-        thread.daemon = True  # Thread stops if main app stops
-        thread.start()
+        # Process document synchronously (takes 0.01s with our instant vectorizer!)
+        # This completely eliminates background thread SQLite database locking & timeouts!
+        process_document(document.id)
+
+        # Refresh document status from DB
+        document.refresh_from_db()
 
         return Response({
-            'message': 'Document uploaded successfully! Processing has started.',
+            'message': 'Document uploaded and processed successfully!',
             'document': DocumentSerializer(document).data
         }, status=status.HTTP_201_CREATED)
 
