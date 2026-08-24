@@ -319,12 +319,20 @@ def get_answer_from_document(vector_store_path: str, question: str) -> str:
     # Configure Gemini API
     genai.configure(api_key=settings.GEMINI_API_KEY)
 
-    # Step 1: Load the FAISS index from disk
-    with open(vector_store_path, 'rb') as f:
-        vector_store = pickle.load(f)
+    # Step 1: Load the FAISS index from disk safely
+    try:
+        if not os.path.exists(vector_store_path):
+            print(f"⚠️ Vector file missing: {vector_store_path}")
+            return "I couldn't find the index for this document. Please re-upload the document."
 
-    index = vector_store['index']
-    chunks = vector_store['chunks']
+        with open(vector_store_path, 'rb') as f:
+            vector_store = pickle.load(f)
+
+        index = vector_store['index']
+        chunks = vector_store['chunks']
+    except Exception as e:
+        print(f"❌ Error loading vector store: {e}")
+        return "Failed to load document content. Please try uploading the document again."
 
     # Step 2: Convert question to embedding vector
     import numpy as np
