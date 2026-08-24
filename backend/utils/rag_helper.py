@@ -374,9 +374,9 @@ ANSWER:"""
     from dotenv import load_dotenv
     import os
 
-    # Re-read .env to catch any recent key updates
+    # Re-read .env to catch any recent key updates (support both GEMINI_API_KEY and GROQ_API_KEY)
     load_dotenv(override=True)
-    raw_key = os.getenv('GEMINI_API_KEY', getattr(settings, 'GEMINI_API_KEY', '')).strip()
+    raw_key = (os.getenv('GEMINI_API_KEY') or os.getenv('GROQ_API_KEY') or getattr(settings, 'GEMINI_API_KEY', '')).strip()
     api_key = raw_key.replace('"', '').replace("'", '').strip()
     print(f"🔑 Active API Key Prefix: {api_key[:8]}...")
 
@@ -444,10 +444,12 @@ ANSWER:"""
     for chunk in relevant_chunks:
         paragraphs = [p.strip() for p in chunk.split('\n\n') if len(p.strip()) > 20]
         for p in paragraphs:
-            p_words = set(w.lower() for w in p.split())
+            # Clean single line breaks into spaces so words flow smoothly
+            clean_p = ' '.join(p.split())
+            p_words = set(w.lower() for w in clean_p.split())
             score = len(q_words.intersection(p_words))
             if score > 0 or any(k in question.lower() for k in ['summary', 'key', 'what', 'explain', 'describe']):
-                matched_paragraphs.append((score, p))
+                matched_paragraphs.append((score, clean_p))
 
     matched_paragraphs.sort(key=lambda x: x[0], reverse=True)
     top_paragraphs = list(dict.fromkeys([p[1] for p in matched_paragraphs[:3]]))
