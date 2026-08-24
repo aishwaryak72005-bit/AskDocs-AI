@@ -412,8 +412,8 @@ Final Answer (no thinking steps, direct response only):"""
 
     print(f"🚀 Calling Groq API (Key: {groq_key[:12]}...)...")
 
-    # Step 5a: Direct list of active Groq text/chat models (no extra network latency!)
-    groq_models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-120b"]
+    # Step 5a: Direct list of active Groq text/chat models
+    groq_models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
     
     print(f"🎯 Querying Groq API using models: {groq_models}")
 
@@ -423,20 +423,21 @@ Final Answer (no thinking steps, direct response only):"""
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {groq_key}",
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                 },
                 json={
                     "model": g_model,
                     "messages": [{"role": "user", "content": prompt}],
                     "temperature": 0.3
                 },
-                timeout=5
+                timeout=4
             )
             print(f"📡 Groq [{g_model}] Status Code: {res.status_code}")
             if res.status_code == 200:
                 data = res.json()
                 answer = data['choices'][0]['message']['content']
-                # Strip <think>...</think> blocks (for thinking models like DeepSeek R1)
+                # Strip <think>...</think> blocks (for thinking models)
                 import re
                 answer = re.sub(r'<think>.*?</think>', '', answer, flags=re.DOTALL).strip()
                 if '</think>' in answer:
