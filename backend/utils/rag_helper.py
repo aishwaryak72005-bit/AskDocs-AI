@@ -409,8 +409,14 @@ Final Answer (no thinking steps, direct response only):"""
 
     print(f"🚀 Calling Groq API (Key: {groq_key[:12]}...)...")
 
-    # Step 5a: Direct list of active Groq text/chat models
-    groq_models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+    # Step 5a: List of active text models available on this Groq account
+    groq_models = [
+        "openai/gpt-oss-120b",
+        "qwen/qwen3.6-27b",
+        "meta-llama/llama-4-scout-17b-16e-instruct",
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant"
+    ]
     
     print(f"🎯 Querying Groq API using models: {groq_models}")
 
