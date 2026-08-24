@@ -36,3 +36,6 @@ vector_stores/
 # ---- OS Files ----
 .DS_Store
 Thumbs.db
+
+# ---- Scratch / Test Scripts (never commit API keys) ----
+scratch/
