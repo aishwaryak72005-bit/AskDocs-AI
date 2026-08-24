@@ -409,13 +409,13 @@ Final Answer (no thinking steps, direct response only):"""
 
     print(f"🚀 Calling Groq API (Key: {groq_key[:12]}...)...")
 
-    # Step 5a: List of active text models available on this Groq account
+    # Step 5a: Groq Model Fallback Chain (high-capacity models first)
     groq_models = [
-        "openai/gpt-oss-120b",
-        "qwen/qwen3.6-27b",
-        "meta-llama/llama-4-scout-17b-16e-instruct",
         "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant"
+        "llama-3.1-8b-instant",
+        "gemma2-9b-it",
+        "openai/gpt-oss-120b",
+        "qwen/qwen3.6-27b"
     ]
     
     print(f"🎯 Querying Groq API using models: {groq_models}")
@@ -427,30 +427,46 @@ Final Answer (no thinking steps, direct response only):"""
                 headers={
                     "Authorization": f"Bearer {groq_key}",
                     "Content-Type": "application/json",
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
                 },
                 json={
                     "model": g_model,
                     "messages": [{"role": "user", "content": prompt}],
                     "temperature": 0.3
                 },
-                timeout=4
+                timeout=5
             )
             print(f"📡 Groq [{g_model}] Status Code: {res.status_code}")
             if res.status_code == 200:
                 data = res.json()
                 answer = data['choices'][0]['message']['content']
-                # Strip <think>...</think> blocks (for thinking models)
                 import re
                 answer = re.sub(r'<think>.*?</think>', '', answer, flags=re.DOTALL).strip()
                 if '</think>' in answer:
                     answer = answer[answer.rfind('</think>') + len('</think>'):].strip()
                 print(f"✅ Groq SUCCESS using {g_model}!")
                 return answer
+            elif res.status_code == 429:
+                print(f"⚠️ Groq [{g_model}] Rate Limited (429), trying next model...")
             else:
-                print(f"❌ Groq [{g_model}] Error ({res.status_code}): {res.text[:150]}")
+                print(f"❌ Groq [{g_model}] Error ({res.status_code}): {res.text[:100]}")
         except Exception as e:
             print(f"❌ Groq [{g_model}] Exception: {e}")
+
+    # Fallback to Google Gemini API if Groq is rate-limited
+    gemini_key = os.getenv('GEMINI_API_KEY', '').strip()
+    if gemini_key and 'AIzaSy' in gemini_key:
+        print("🤖 Groq rate limited. Failing over to Google Gemini API...")
+        for g_mod in ["gemini-1.5-flash", "gemini-1.5-pro"]:
+            try:
+                g_url = f"https://generativelanguage.googleapis.com/v1beta/models/{g_mod}:generateContent?key={gemini_key}"
+                res = requests.post(g_url, headers={"Content-Type": "application/json"}, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=5)
+                if res.status_code == 200:
+                    answer_text = res.json()['candidates'][0]['content']['parts'][0]['text']
+                    print(f"✅ Gemini SUCCESS using {g_mod}!")
+                    return answer_text
+            except Exception as e:
+                print(f"❌ Gemini Exception: {e}")
 
     # Fallback to local document extraction if offline
     print("⚠️ Groq API offline or rate-limited. Generating answer using local document summarizer...")
