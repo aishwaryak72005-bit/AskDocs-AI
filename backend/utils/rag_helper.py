@@ -411,29 +411,34 @@ ANSWER:"""
             except Exception as e:
                 print(f"❌ Groq [{g_model}] Exception: {e}")
 
-    # --- IF GEMINI KEY (starts with AIzaSy) ---
-    print("🤖 Using Google Gemini API...")
-    for model_name in ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]:
-        try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-            res = requests.post(
-                url,
-                headers={"Content-Type": "application/json"},
-                json={
-                    "contents": [{
-                        "parts": [{"text": prompt}]
-                    }]
-                },
-                timeout=15
-            )
-            if res.status_code == 200:
-                data = res.json()
-                answer_text = data['candidates'][0]['content']['parts'][0]['text']
-                return answer_text
-            else:
-                print(f"Gemini {model_name} Error:", res.status_code, res.text)
-        except Exception as e:
-            print(f"Gemini {model_name} Exception:", e)
+    # --- IF GEMINI KEY (contains AIzaSy) ---
+    if 'AIzaSy' in api_key:
+        print("🤖 Using Google Gemini API...")
+        idx = api_key.find('AIzaSy')
+        gemini_key = api_key[idx:].split()[0].replace('"', '').replace("'", '').strip()
+        
+        for model_name in ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
+                res = requests.post(
+                    url,
+                    headers={"Content-Type": "application/json"},
+                    json={
+                        "contents": [{
+                            "parts": [{"text": prompt}]
+                        }]
+                    },
+                    timeout=15
+                )
+                print(f"📡 Gemini [{model_name}] Status Code: {res.status_code}")
+                if res.status_code == 200:
+                    data = res.json()
+                    answer_text = data['candidates'][0]['content']['parts'][0]['text']
+                    return answer_text
+                else:
+                    print(f"❌ Gemini {model_name} Error:", res.status_code, res.text)
+            except Exception as e:
+                print(f"❌ Gemini {model_name} Exception:", e)
 
     # If AI API calls fail (key expired/revoked), trigger smart local document summarizer
     print("⚠️ AI API key invalid or offline. Generating answer using local document summarizer...")
