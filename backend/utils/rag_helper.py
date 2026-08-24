@@ -380,16 +380,20 @@ ANSWER:"""
     api_key = raw_key.replace('"', '').replace("'", '').strip()
     print(f"🔑 Active API Key Prefix: {api_key[:8]}...")
 
-    # --- IF GROQ KEY (starts with gsk_) ---
-    if api_key.startswith('gsk_'):
+    # --- IF GROQ KEY (contains gsk_) ---
+    if 'gsk_' in api_key:
         print("🚀 Using Groq Free Llama 3 API...")
+        idx = api_key.find('gsk_')
+        groq_key = api_key[idx:].split()[0].replace('"', '').replace("'", '').strip()
+        print(f"🔑 Extracted Groq Key: {groq_key[:8]}...")
+        
         groq_models = ["llama-3.3-70b-versatile", "llama3-8b-8192", "llama-3.1-8b-instant", "mixtral-8x7b-32768"]
         for g_model in groq_models:
             try:
                 res = requests.post(
                     "https://api.groq.com/openai/v1/chat/completions",
                     headers={
-                        "Authorization": f"Bearer {api_key}",
+                        "Authorization": f"Bearer {groq_key}",
                         "Content-Type": "application/json"
                     },
                     json={
