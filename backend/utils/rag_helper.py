@@ -418,46 +418,29 @@ Final Answer (no thinking steps, direct response only):"""
         models_res = requests.get(
             "https://api.groq.com/openai/v1/models",
             headers={"Authorization": f"Bearer {groq_key}"},
-            timeout=10
+            timeout=4
         )
         print(f"📋 Models endpoint status: {models_res.status_code}")
         if models_res.status_code == 200:
             all_models = [m['id'] for m in models_res.json().get('data', [])]
-            print(f"📋 Available models: {all_models}")
-            # Prefer fast text models, filter out vision/image models
-            # Prefer full chat/instruct models only (exclude guard, safety, whisper, tts, vision, arabic)
             preferred = [
-                'meta-llama/llama-4-scout-17b-16e-instruct',
-                'meta-llama/llama-4-maverick-17b-128e-instruct',
                 'llama-3.3-70b-versatile',
                 'llama-3.1-8b-instant',
                 'llama-3.1-70b-versatile',
-                'llama3-70b-8192',
-                'llama3-8b-8192',
+                'meta-llama/llama-4-scout-17b-16e-instruct',
                 'openai/gpt-oss-120b',
                 'qwen/qwen3.6-27b',
-                'qwen/qwen3.6-2/b',
                 'gemma2-9b-it',
-                'allam-2-7b',
             ]
-            # Exclude non-chat models
-            skip_keywords = [
-                'whisper', 'vision', 'deepseek', 'guard', 'safeguard',
-                'orpheus', 'compound', 'arabic', 'tts', 'r1', 'turbo'
-            ]
-            groq_models = [m for m in preferred if m in all_models]
+            skip_keywords = ['whisper', 'vision', 'deepseek', 'guard', 'safeguard', 'orpheus', 'compound', 'arabic', 'tts', 'r1']
+            groq_models = [m for m in preferred if m in all_models][:2]
             if not groq_models:
-                groq_models = [
-                    m for m in all_models
-                    if not any(k in m.lower() for k in skip_keywords)
-                ][:5]
-        else:
-            print(f"❌ Models endpoint error: {models_res.text[:200]}")
+                groq_models = [m for m in all_models if not any(k in m.lower() for k in skip_keywords)][:2]
     except Exception as e:
         print(f"❌ Models discovery exception: {e}")
 
     if not groq_models:
-        groq_models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-70b-8192", "gemma2-9b-it"]
+        groq_models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
 
     print(f"🎯 Will try models: {groq_models}")
 
@@ -474,7 +457,7 @@ Final Answer (no thinking steps, direct response only):"""
                     "messages": [{"role": "user", "content": prompt}],
                     "temperature": 0.3
                 },
-                timeout=15
+                timeout=7
             )
             print(f"📡 Groq [{g_model}] Status Code: {res.status_code}")
             if res.status_code == 200:
