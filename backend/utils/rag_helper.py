@@ -359,8 +359,8 @@ def get_answer_from_document(vector_store_path: str, question: str) -> str:
     question_vector = np.array([q_vec], dtype=np.float32)
     print(f"⚡ Instant query vector generated (dim={index_dim})!")
 
-    # Step 3: Find the top 8 most relevant chunks
-    k = min(8, len(chunks))
+    # Step 3: Find top 20 relevant chunks (Groq Llama 3 handles large context effortlessly!)
+    k = min(20, len(chunks))
     distances, indices_result = index.search(question_vector, k)
 
     # Get the actual text of the relevant chunks (filter out invalid FAISS indices)
