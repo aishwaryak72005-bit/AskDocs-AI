@@ -428,12 +428,33 @@ ANSWER:"""
         except Exception as e:
             print(f"Gemini {model_name} Exception:", e)
 
-    # If key is still invalid, show helpful message
-    return """⚠️ **API Key Configuration Needed**
+    # If AI API call fails or key is missing, trigger smart local document extractor
+    print("⚠️ AI API key missing or offline. Using local document extractor fallback...")
+    
+    q_words = set(w.lower() for w in question.split() if len(w) > 2)
+    matched_sentences = []
+    
+    for chunk in relevant_chunks:
+        lines = [l.strip() for l in chunk.replace('\r', '\n').split('\n') if l.strip()]
+        for line in lines:
+            line_words = set(w.lower() for w in line.split())
+            overlap_score = len(q_words.intersection(line_words))
+            if overlap_score > 0 or 'summary' in question.lower() or 'key' in question.lower() or 'what' in question.lower():
+                matched_sentences.append((overlap_score, line))
 
-To get real AI answers, please add a free API Key to your `backend/.env` file:
+    matched_sentences.sort(key=lambda x: x[0], reverse=True)
+    top_lines = list(dict.fromkeys([s[1] for s in matched_sentences[:6]]))
 
-1. **Google Gemini Key**: Get free at [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) (starts with `AIzaSy...`)
-2. **Groq Llama 3 Key**: Get free at [console.groq.com/keys](https://console.groq.com/keys) (starts with `gsk_...`)
+    if not top_lines:
+        return "I couldn't find this information in the uploaded document."
 
-Update `GEMINI_API_KEY` in `backend/.env` and ask your question again!"""
+    formatted_answer = f"### Key Information from Document\n\nBased on your document context:\n\n"
+    for line in top_lines:
+        words = line.split()
+        if len(words) > 3:
+            line_formatted = f"• **{words[0]} {words[1]}**: {' '.join(words[2:])}"
+        else:
+            line_formatted = f"• {line}"
+        formatted_answer += f"{line_formatted}\n"
+
+    return formatted_answer
