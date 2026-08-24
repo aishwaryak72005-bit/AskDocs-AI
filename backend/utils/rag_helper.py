@@ -349,24 +349,23 @@ def get_answer_from_document(vector_store_path: str, question: str) -> str:
     # Combine the relevant chunks into one context block
     context = "\n\n---\n\n".join(relevant_chunks)
 
-    # Step 4: Build the prompt for Gemini
-    prompt = f"""You are a document assistant. Your job is to answer questions ONLY from the provided document context below.
+    # Step 4: Build the prompt
+    prompt = f"""You are a helpful document assistant. Answer the user's question using ONLY the document context provided below. Do NOT show your thinking or reasoning steps — output the final answer directly.
 
-RULES:
-- Answer ONLY using the information in the document context provided.
-- Do NOT use any outside knowledge or general information.
-- If the answer is not in the document context, respond EXACTLY with: "I couldn't find this information in the uploaded document."
-- Format your answer clearly using headings, bullet points, and short paragraphs.
-- Never return one long paragraph. Break it up nicely.
-- Use **bold** for important keywords.
+Rules:
+- Use ONLY information from the document context below.
+- Do NOT use outside knowledge.
+- If the answer is not found, say: "I couldn't find this information in the uploaded document."
+- Format with **bold** keywords, bullet points, and short paragraphs.
+- Never output your thinking process or intermediate steps — only the final answer.
 
---- DOCUMENT CONTEXT ---
+=== DOCUMENT CONTEXT ===
 {context}
---- END OF CONTEXT ---
+=== END ===
 
-USER QUESTION: {question}
+Question: {question}
 
-ANSWER:"""
+Final Answer (no thinking steps, direct response only):"""
 
     # Step 5: Call Groq Llama 3 REST API
     import requests
@@ -378,20 +377,54 @@ ANSWER:"""
     env_path = settings.BASE_DIR / '.env'
     if env_path.exists():
         load_dotenv(dotenv_path=env_path, override=True)
-    
-    raw_key = (os.getenv('GEMINI_API_KEY') or os.getenv('GROQ_API_KEY') or getattr(settings, 'GEMINI_API_KEY', '') or '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').strip()
+
+    raw_key = (os.getenv('GROQ_API_KEY') or os.getenv('GEMINI_API_KEY') or getattr(settings, 'GEMINI_API_KEY', '')).strip()
     api_key = raw_key.replace('"', '').replace("'", '').strip()
-    
+
     # Extract clean Groq API key (starts with gsk_)
     groq_key = api_key
     if 'gsk_' in api_key:
         idx = api_key.find('gsk_')
         groq_key = api_key[idx:].split()[0].rstrip(';,.\'"').strip()
 
-    print(f"🚀 Calling Groq Llama 3 API (Key: {groq_key[:12]}...)...")
+    print(f"🚀 Calling Groq API (Key: {groq_key[:12]}...)...")
 
-    groq_models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.2-3b-preview", "deepseek-r1-distill-llama-70b"]
-    
+    # Step 5a: Dynamically discover available models for THIS key
+    groq_models = []
+    try:
+        models_res = requests.get(
+            "https://api.groq.com/openai/v1/models",
+            headers={"Authorization": f"Bearer {groq_key}"},
+            timeout=10
+        )
+        print(f"📋 Models endpoint status: {models_res.status_code}")
+        if models_res.status_code == 200:
+            all_models = [m['id'] for m in models_res.json().get('data', [])]
+            print(f"📋 Available models: {all_models}")
+            # Prefer fast text models, filter out vision/image models
+            # Prefer non-thinking models (no deepseek-r1, no whisper, no vision)
+            preferred = [
+                'llama-3.3-70b-versatile', 'llama-3.1-8b-instant',
+                'llama-3.1-70b-versatile', 'llama-3.3-70b-specdec',
+                'llama3-70b-8192', 'llama3-8b-8192',
+                'meta-llama/llama-4-scout-17b-16e-instruct',
+                'meta-llama/llama-4-maverick-17b-128e-instruct',
+                'gemma2-9b-it', 'gemma-7b-it',
+            ]
+            groq_models = [m for m in preferred if m in all_models]
+            if not groq_models:
+                # Skip thinking/whisper/vision models
+                groq_models = [m for m in all_models if 'whisper' not in m and 'vision' not in m and 'deepseek' not in m][:5]
+        else:
+            print(f"❌ Models endpoint error: {models_res.text[:200]}")
+    except Exception as e:
+        print(f"❌ Models discovery exception: {e}")
+
+    if not groq_models:
+        groq_models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-70b-8192", "gemma2-9b-it"]
+
+    print(f"🎯 Will try models: {groq_models}")
+
     for g_model in groq_models:
         try:
             res = requests.post(
