@@ -412,37 +412,10 @@ Final Answer (no thinking steps, direct response only):"""
 
     print(f"🚀 Calling Groq API (Key: {groq_key[:12]}...)...")
 
-    # Step 5a: Dynamically discover available models for THIS key
-    groq_models = []
-    try:
-        models_res = requests.get(
-            "https://api.groq.com/openai/v1/models",
-            headers={"Authorization": f"Bearer {groq_key}"},
-            timeout=4
-        )
-        print(f"📋 Models endpoint status: {models_res.status_code}")
-        if models_res.status_code == 200:
-            all_models = [m['id'] for m in models_res.json().get('data', [])]
-            preferred = [
-                'llama-3.3-70b-versatile',
-                'llama-3.1-8b-instant',
-                'llama-3.1-70b-versatile',
-                'meta-llama/llama-4-scout-17b-16e-instruct',
-                'openai/gpt-oss-120b',
-                'qwen/qwen3.6-27b',
-                'gemma2-9b-it',
-            ]
-            skip_keywords = ['whisper', 'vision', 'deepseek', 'guard', 'safeguard', 'orpheus', 'compound', 'arabic', 'tts', 'r1']
-            groq_models = [m for m in preferred if m in all_models][:2]
-            if not groq_models:
-                groq_models = [m for m in all_models if not any(k in m.lower() for k in skip_keywords)][:2]
-    except Exception as e:
-        print(f"❌ Models discovery exception: {e}")
-
-    if not groq_models:
-        groq_models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
-
-    print(f"🎯 Will try models: {groq_models}")
+    # Step 5a: Direct list of active Groq text/chat models (no extra network latency!)
+    groq_models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-120b"]
+    
+    print(f"🎯 Querying Groq API using models: {groq_models}")
 
     for g_model in groq_models:
         try:
@@ -457,7 +430,7 @@ Final Answer (no thinking steps, direct response only):"""
                     "messages": [{"role": "user", "content": prompt}],
                     "temperature": 0.3
                 },
-                timeout=7
+                timeout=5
             )
             print(f"📡 Groq [{g_model}] Status Code: {res.status_code}")
             if res.status_code == 200:
@@ -466,7 +439,6 @@ Final Answer (no thinking steps, direct response only):"""
                 # Strip <think>...</think> blocks (for thinking models like DeepSeek R1)
                 import re
                 answer = re.sub(r'<think>.*?</think>', '', answer, flags=re.DOTALL).strip()
-                # Also handle case where content appears before </think> closing tag
                 if '</think>' in answer:
                     answer = answer[answer.rfind('</think>') + len('</think>'):].strip()
                 print(f"✅ Groq SUCCESS using {g_model}!")
