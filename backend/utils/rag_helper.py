@@ -313,8 +313,7 @@ def get_answer_from_document(vector_store_path: str, question: str) -> str:
         vector_store_path: Path to the saved FAISS .pkl file
         question: The user's question
 
-    Returns:
-        The AI's answer as a formatted string
+    """
     import os
     import pickle
 
