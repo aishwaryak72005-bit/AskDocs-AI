@@ -212,7 +212,7 @@ SIMPLE_JWT = {
 
 
 # ============================================================
-# GEMINI API KEY
+# GEMINI / GROQ API KEY
 # ============================================================
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 
