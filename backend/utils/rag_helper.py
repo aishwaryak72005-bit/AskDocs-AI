@@ -315,9 +315,8 @@ def get_answer_from_document(vector_store_path: str, question: str) -> str:
 
     Returns:
         The AI's answer as a formatted string
-    """
-    # Configure Gemini API
-    genai.configure(api_key=settings.GEMINI_API_KEY)
+    import os
+    import pickle
 
     # Step 1: Load the FAISS index from disk safely
     try:
