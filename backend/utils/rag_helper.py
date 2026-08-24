@@ -386,7 +386,7 @@ ANSWER:"""
         idx = api_key.find('gsk_')
         groq_key = api_key[idx:].split()[0].replace('"', '').replace("'", '').strip()
         
-        groq_models = ["llama-3.3-70b-versatile", "llama3-8b-8192", "llama-3.1-8b-instant", "mixtral-8x7b-32768"]
+        groq_models = ["llama3-70b-8192", "gemma2-9b-it", "llama-3.2-3b-preview", "llama-3.1-70b-versatile"]
         for g_model in groq_models:
             try:
                 res = requests.post(
