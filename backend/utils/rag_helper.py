@@ -382,10 +382,9 @@ ANSWER:"""
 
     # --- IF GROQ KEY (contains gsk_) ---
     if 'gsk_' in api_key:
-        print("🚀 Using Groq Free Llama 3 API...")
+        print(f"🚀 Using Groq API with key {api_key[:12]}...")
         idx = api_key.find('gsk_')
         groq_key = api_key[idx:].split()[0].replace('"', '').replace("'", '').strip()
-        print(f"🔑 Extracted Groq Key: {groq_key[:8]}...")
         
         groq_models = ["llama-3.3-70b-versatile", "llama3-8b-8192", "llama-3.1-8b-instant", "mixtral-8x7b-32768"]
         for g_model in groq_models:
@@ -403,13 +402,14 @@ ANSWER:"""
                     },
                     timeout=15
                 )
+                print(f"📡 Groq [{g_model}] Status Code: {res.status_code}")
                 if res.status_code == 200:
                     data = res.json()
                     return data['choices'][0]['message']['content']
                 else:
-                    print(f"Groq {g_model} Error:", res.status_code, res.text)
+                    print(f"❌ Groq [{g_model}] Error Response: {res.text}")
             except Exception as e:
-                print(f"Groq {g_model} Exception:", e)
+                print(f"❌ Groq [{g_model}] Exception: {e}")
 
     # --- IF GEMINI KEY (starts with AIzaSy) ---
     print("🤖 Using Google Gemini API...")
